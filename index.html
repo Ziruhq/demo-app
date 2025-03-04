@@ -176,8 +176,16 @@
 
             ThumbmarkJS.includeComponent('browser_', detectTorBrowser);
             ThumbmarkJS.setOption('include', [
-                'webgl', 'permission', 'audio', 'hardware.deviceMemory', 'fonts', 'browser_'
-            ]);
+                            'webgl', 
+                            'permission', 
+                            'audio.channelCountMode', 
+                            'audio.maxChannels', 
+                            'audio.oscillator', 
+                            'fonts', 
+                            'browser_',
+                            'hardware.architecture',
+                            'hardware.videocard'
+                        ]);
 
             const fetchFingerprint = async () => {
                 const fp = await ThumbmarkJS.getFingerprint();
