@@ -1,18 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThumbmarkJS Fingerprint</title>
+    <title>Device Fingerprint Scanner</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js"></script>
 </head>
-<body>
-    <h1>Browser Fingerprint</h1>
-    <p>Your unique fingerprint:</p>
-    <pre id="fingerprint">Loading...</pre>
+<body class="bg-body">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <h1 class="display-4 mb-3">
+                        <i class="bi bi-fingerprint me-2"></i>
+                        Device Fingerprint Scanner
+                    </h1>
+                    <p class="lead text-secondary">Analyze your browser's unique characteristics and security features</p>
+                </div>
 
-    <h2>Fingerprint Data</h2>
-    <pre id="fingerprintData">Loading...</pre>
+                <!-- Browser Info Card -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-3 mb-md-0">
+                                    <i class="bi bi-browser-chrome fs-1 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-secondary">Browser Type</h6>
+                                        <span id="browserType" class="h5">Detecting...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center mb-3 mb-md-0">
+                                    <i class="bi bi-shield-lock fs-1 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-secondary">Tor Status</h6>
+                                        <span id="torStatus" class="h5">
+                                            <div class="spinner-border spinner-border-sm text-secondary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-cpu fs-1 me-3"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-secondary">Device Type</h6>
+                                        <span id="deviceType" class="h5">Detecting...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fingerprint Card -->
+                <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h3 class="card-title mb-0">
+                            <i class="bi bi-key me-2"></i>
+                            Your Unique Fingerprint
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <pre id="fingerprint" class="bg-dark p-3 rounded mb-0">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border text-secondary me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Generating fingerprint...</span>
+                            </div>
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- Detailed Data Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h3 class="card-title mb-0">
+                            <i class="bi bi-list-ul me-2"></i>
+                            Detailed Fingerprint Data
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <pre id="fingerprintData" class="bg-dark p-3 rounded mb-0">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border text-secondary me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <span>Loading detailed data...</span>
+                            </div>
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
@@ -32,7 +121,7 @@
 
                 return {
                     isTor: score >= 6,
-                    isTorAccuracyScore: ${((score / totalChecks) * 100).toFixed(2)}%,
+                    isTorAccuracyScore: ((score / totalChecks) * 100).toFixed(2) + "%",
                     details: {
                         timezoneMatch: tz === "Atlantic/Reykjavik",
                         webGLVendor: webGLInfo.vendor,
@@ -63,6 +152,28 @@
                 document.getElementById(id).innerText = content;
             }
 
+            // Detect browser type
+            function detectBrowser() {
+                const userAgent = navigator.userAgent;
+                if (userAgent.includes("Firefox")) return "Firefox";
+                if (userAgent.includes("Chrome")) return "Chrome";
+                if (userAgent.includes("Safari")) return "Safari";
+                if (userAgent.includes("Edge")) return "Edge";
+                if (userAgent.includes("Opera")) return "Opera";
+                return "Unknown";
+            }
+
+            // Detect device type
+            function detectDevice() {
+                if (/Mobi|Android/i.test(navigator.userAgent)) return "Mobile";
+                if (/iPad|Tablet/i.test(navigator.userAgent)) return "Tablet";
+                return "Desktop";
+            }
+
+            // Update browser info
+            document.getElementById("browserType").textContent = detectBrowser();
+            document.getElementById("deviceType").textContent = detectDevice();
+
             ThumbmarkJS.includeComponent('browser_', detectTorBrowser);
             ThumbmarkJS.setOption('include', [
                 'webgl', 'permission', 'audio', 'hardware.deviceMemory', 'fonts', 'browser_'
@@ -78,6 +189,15 @@
                 const fpData = await ThumbmarkJS.getFingerprintData();
                 updateElement("fingerprintData", JSON.stringify(fpData, null, 2));
                 console.log(fpData);
+
+                // Update Tor status
+                const torInfo = await detectTorBrowser();
+                const torStatusElement = document.getElementById("torStatus");
+                if (torInfo.isTor) {
+                    torStatusElement.innerHTML = `<span class="badge bg-success">Tor Detected</span>`;
+                } else {
+                    torStatusElement.innerHTML = `<span class="badge bg-secondary">Not Tor</span>`;
+                }
             };
 
             fetchFingerprint();
