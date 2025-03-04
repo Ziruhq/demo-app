@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThumbmarkJS Fingerprint</title>
+    <script src="https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js"></script>
+</head>
+<body>
+    <h1>Browser Fingerprint</h1>
+    <p>Your unique fingerprint:</p>
+    <pre id="fingerprint">Loading...</pre>
+
+    <h2>Fingerprint Data</h2>
+    <pre id="fingerprintData">Loading...</pre>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            async function detectTorBrowser() {
+                const totalChecks = 7;
+                let score = 0;
+                
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (tz === "Atlantic/Reykjavik") score++;
+                const webGLInfo = getWebGLInfo();
+                if (["Mozilla", "unknown"].includes(webGLInfo.vendor)) score++;
+                if (!window.RTCPeerConnection) score++;
+                if (!navigator.deviceMemory) score++;
+                if (navigator.hardwareConcurrency === 2) score++;
+                if (!navigator.credentials) score++;
+                if (!navigator.geolocation) score++;
+
+                return {
+                    isTor: score >= 6,
+                    isTorAccuracyScore: ${((score / totalChecks) * 100).toFixed(2)}%,
+                    details: {
+                        timezoneMatch: tz === "Atlantic/Reykjavik",
+                        webGLVendor: webGLInfo.vendor,
+                        webRTCDisabled: !window.RTCPeerConnection,
+                        deviceMemory: navigator.deviceMemory,
+                    },
+                };
+            }
+
+            const getWebGLInfo = () => {
+                try {
+                    const canvas = document.createElement("canvas");
+                    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    if (!gl) return { vendor: "unsupported", renderer: "unsupported" };
+                    const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+                    return debugInfo
+                        ? {
+                            vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
+                            renderer: gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
+                        }
+                        : { vendor: "unknown", renderer: "unknown" };
+                } catch {
+                    return { vendor: "error", renderer: "error" };
+                }
+            };
+
+            function updateElement(id, content) {
+                document.getElementById(id).innerText = content;
+            }
+
+            ThumbmarkJS.includeComponent('browser_', detectTorBrowser);
+            ThumbmarkJS.setOption('include', [
+                'webgl', 'permission', 'audio', 'hardware.deviceMemory', 'fonts', 'browser_'
+            ]);
+
+            const fetchFingerprint = async () => {
+                const fp = await ThumbmarkJS.getFingerprint();
+                updateElement("fingerprint", fp);
+                console.log(fp);
+            };
+
+            const fetchFingerprintData = async () => {
+                const fpData = await ThumbmarkJS.getFingerprintData();
+                updateElement("fingerprintData", JSON.stringify(fpData, null, 2));
+                console.log(fpData);
+            };
+
+            fetchFingerprint();
+            fetchFingerprintData();
+        });
+    </script>
+</body>
+</html>
